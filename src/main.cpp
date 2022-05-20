@@ -1,6 +1,5 @@
 #include <Adafruit_MCP4725.h>
 #include <Arduino.h>
-#include <PID_v1.h>
 #include <Wire.h>
 #include <sdpsensor.h>
 
@@ -15,7 +14,9 @@
 #define airFlowLimit1 30
 #define airFlowLimit2 95
 #define airFlowLimit3 160
-#define numPLateauDataPoints 20
+
+#define maxVoltage 4095
+#define startVoltage 900
 
 const float measurementPoints[] = {airFlowLimit1, airFlowLimit2, airFlowLimit3};
 
@@ -36,22 +37,17 @@ float currAirflow = 0;
 float airflowLimit = 0;
 float pressure = 0;
 
-int currentVoltage = 0;
-int startVoltage = 900;
-int maxVoltage = 4095;
-int numMeasurementpoints = sizeof(measurementPoints) / sizeof(measurementPoints[0]);
-int currMeasurementPoint = 0;
+short currentVoltage = 0;
+uint8_t numMeasurementpoints = sizeof(measurementPoints) / sizeof(measurementPoints[0]);
+uint8_t currMeasurementPoint = 0;
 bool linear_measurment = true;
 bool b_btn1, b_btn2, b_switch1, b_switch2;
 
 long timestamp, timestampInterval;
 
-//PID stuff
-double setPoint, input, Output;
+float setPoint,input;
 
-double factorSq = 0.28, factorX = -13.4, factorConst = 1113;
-double Kp = 2, Ki = 0, Kd = 0.1;
-PID myPID(&input, &Output, &setPoint, Kp, Ki, Kd, DIRECT);
+float factorSq = 0.28, factorX = -13.4, factorConst = 1113;
 
 float readPressureSensor();
 float readAirflowSensor();
@@ -96,7 +92,6 @@ void setup() {
     head_state = IDLE;
     delay(200);
     timestamp = millis();
-    myPID.SetMode(AUTOMATIC);
     Serial.println("READY FOR MEASUREMENT");
 }
 
