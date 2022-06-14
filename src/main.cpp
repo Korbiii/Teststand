@@ -11,9 +11,9 @@
 #define daci2cAdress 0x60
 #define sfm3300i2cAdress 0x40
 
-#define airFlowLimit1 30
-#define airFlowLimit2 95
-#define airFlowLimit3 160
+#define airFlowLimit1 35
+#define airFlowLimit2 100
+#define airFlowLimit3 170
 
 #define maxVoltage 4095
 #define startVoltage 900
@@ -131,7 +131,7 @@ void loop() {
             break;
         case LINEAR_MEASUREMENT:
             serialOutput();
-            if (setPoint > airflowLimit) {
+            if (currAirflow > airflowLimit || abs(pressure) > 450) {
                 Serial.println("################# MEASURMENT COMPLETE #################");
                 resetMeasurement();
                 head_state = IDLE;
@@ -240,12 +240,27 @@ void checkLimit() {
     }
 }
 
-void serialOutput() {
+void serialOutput() {  
+    float tempPressure = readPressureSensor();
+    float tempAirflow = readAirflowSensor();
+    if(tempPressure<1){
+      tempPressure = -tempPressure;
+    }
+    short iTempPressure =(int)tempPressure;
+    short fTempPressure = (tempPressure-iTempPressure)*100;
+    short iTempAirflow =(int)tempAirflow;
+    short fTempAirflow = (tempAirflow-iTempAirflow)*100;
+    Serial.print("\t\t");  
+    Serial.print(iTempAirflow);
+    Serial.print(",");  
+    Serial.print((int)fTempAirflow);
     Serial.print("\t\t");
-    Serial.print(readAirflowSensor());
-    Serial.print("\t\t");
-    Serial.println(readPressureSensor());
+    Serial.print(iTempPressure);
+    Serial.print(",");
+    Serial.println(fTempPressure);
 }
+
+
 
 void checkButtons() {
     b_btn1 = digitalRead(btn1);
